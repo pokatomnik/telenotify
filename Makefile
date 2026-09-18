@@ -1,0 +1,55 @@
+APP_NAME := telenotify
+CMD_DIR := ./cmd/telenotify
+BIN_DIR := bin
+DIST_DIR := dist
+
+GO ?= go
+GOOS ?= $(shell $(GO) env GOOS)
+GOARCH ?= $(shell $(GO) env GOARCH)
+VERSION ?= dev
+LDFLAGS := -s -w -X main.version=$(VERSION)
+GOFLAGS := -trimpath
+
+TARGETS := \
+	linux/amd64 \
+	linux/arm64 \
+	darwin/amd64 \
+	darwin/arm64 \
+	windows/amd64 \
+	windows/arm64
+
+.PHONY: all lint test build build-all install clean
+
+all: lint test build
+
+lint:
+	$(GO) fmt ./...
+	$(GO) vet ./...
+
+test:
+	$(GO) test ./...
+
+build: $(BIN_DIR)/$(APP_NAME)
+
+$(BIN_DIR)/$(APP_NAME):
+	@mkdir -p $(BIN_DIR)
+	GOOS=$(GOOS) GOARCH=$(GOARCH) $(GO) build $(GOFLAGS) -ldflags '$(LDFLAGS)' -o $@ $(CMD_DIR)
+
+build-all:
+	@mkdir -p $(DIST_DIR)
+	@set -e; \
+	for target in $(TARGETS); do \
+		os=$${target%/*}; \
+		arch=$${target#*/}; \
+		extension=; \
+		if [ "$$os" = "windows" ]; then extension=.exe; fi; \
+		output=$(DIST_DIR)/$(APP_NAME)-$$os-$$arch$$extension; \
+		echo "Building $$output"; \
+		GOOS=$$os GOARCH=$$arch $(GO) build $(GOFLAGS) -ldflags '$(LDFLAGS)' -o $$output $(CMD_DIR); \
+	done
+
+install:
+	GOOS=$(GOOS) GOARCH=$(GOARCH) $(GO) install $(GOFLAGS) -ldflags '$(LDFLAGS)' $(CMD_DIR)
+
+clean:
+	rm -rf $(BIN_DIR) $(DIST_DIR)
