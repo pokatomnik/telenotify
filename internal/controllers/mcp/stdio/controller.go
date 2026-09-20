@@ -51,5 +51,5 @@ func (m MCPHTTPRunner) Run(ctx context.Context) error {
 		return err
 	}
 
-	return server.Run(ctx, nil)
+	return server.Run(ctx, &mcp.StdioTransport{})
 }

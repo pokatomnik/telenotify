@@ -7,9 +7,10 @@ import (
 )
 
 type Config struct {
-	EnvChatID   string `env:"TELENOTIFY_CHAT_ID,required,notEmpty"`
-	EnvBotToken string `env:"TELENOTIFY_BOT_TOKEN,required,notEmpty"`
-	EnvProxyURL string `env:"FUCK_RKN_PROXY"`
+	EnvChatID      string `env:"TELENOTIFY_CHAT_ID,required,notEmpty"`
+	EnvBotToken    string `env:"TELENOTIFY_BOT_TOKEN,required,notEmpty"`
+	EnvProxyURL    string `env:"FUCK_RKN_PROXY"`
+	EnvMCPHTTPHost string `env:"MCP_HTTP_HOST"`
 }
 
 func ParseConfig() (Config, error) {
@@ -22,6 +23,10 @@ func (c Config) Token() string {
 
 func (c Config) ChatID() string {
 	return c.EnvChatID
+}
+
+func (c Config) HTTPAddress() string {
+	return c.EnvMCPHTTPHost
 }
 
 func (c Config) ProxyURL() (url *url.URL, hasProxy bool, err error) {

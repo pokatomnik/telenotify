@@ -15,11 +15,13 @@ import (
 
 	// Cobra controllers
 	cmdMCPRootControllerPackage "github.com/pokatomnik/telenotify/internal/controllers/cli/mcp"
+	cmdMCPHTTPControllerPackage "github.com/pokatomnik/telenotify/internal/controllers/cli/mcp_http"
 	cmdMCPStdIOControllerPackage "github.com/pokatomnik/telenotify/internal/controllers/cli/mcp_stdio"
 	cmdNotifyControllerPackage "github.com/pokatomnik/telenotify/internal/controllers/cli/notify"
 	cmdRootControllerPackage "github.com/pokatomnik/telenotify/internal/controllers/cli/root"
 
 	// MCP controllers
+	mcpHTTPControllerPackage "github.com/pokatomnik/telenotify/internal/controllers/mcp/http"
 	mcpStdIOControllerPackage "github.com/pokatomnik/telenotify/internal/controllers/mcp/stdio"
 
 	// use cases
@@ -56,11 +58,13 @@ func main() {
 
 	// MCP controllers
 	mcpStdIOController := mcpStdIOControllerPackage.New(ucNotify)
+	mcpHTTPController := mcpHTTPControllerPackage.New(ucNotify, config)
 
 	// cobra controllers
 	cmdNotify := cmdNotifyControllerPackage.Notify(ucNotify)
 	cmdMCPStdIO := cmdMCPStdIOControllerPackage.MCPStdIOController(mcpStdIOController)
-	cmdMCPRoot := cmdMCPRootControllerPackage.NewMCPRootController(cmdMCPStdIO)
+	cmdMCPHTTP := cmdMCPHTTPControllerPackage.MCPHTTPController(mcpHTTPController)
+	cmdMCPRoot := cmdMCPRootControllerPackage.NewMCPRootController(cmdMCPStdIO, cmdMCPHTTP)
 	cmdRoot := cmdRootControllerPackage.RootController(cmdNotify, cmdMCPRoot)
 
 	err = cmdRoot.ExecuteContext(appContext)
