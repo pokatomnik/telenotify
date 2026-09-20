@@ -7,11 +7,23 @@ import (
 	stdHttp "net/http"
 
 	"github.com/joho/godotenv"
-	"github.com/pokatomnik/telenotify/internal/adapters/telegram"
-	ucNotifyControllerPackage "github.com/pokatomnik/telenotify/internal/controllers/cli/notify"
-	ucRootControllerPackage "github.com/pokatomnik/telenotify/internal/controllers/cli/root"
-	ucNotifyUseCasePackage "github.com/pokatomnik/telenotify/internal/use_cases/notify"
+
 	"github.com/pokatomnik/telenotify/internal/util/http"
+
+	// adapters
+	aTelegramPackage "github.com/pokatomnik/telenotify/internal/adapters/telegram"
+
+	// Cobra controllers
+	cmdMCPRootControllerPackage "github.com/pokatomnik/telenotify/internal/controllers/cli/mcp"
+	cmdMCPStdIOControllerPackage "github.com/pokatomnik/telenotify/internal/controllers/cli/mcp_stdio"
+	cmdNotifyControllerPackage "github.com/pokatomnik/telenotify/internal/controllers/cli/notify"
+	cmdRootControllerPackage "github.com/pokatomnik/telenotify/internal/controllers/cli/root"
+
+	// MCP controllers
+	mcpStdIOControllerPackage "github.com/pokatomnik/telenotify/internal/controllers/mcp/stdio"
+
+	// use cases
+	ucNotifyUseCasePackage "github.com/pokatomnik/telenotify/internal/use_cases/notify"
 )
 
 func main() {
@@ -37,14 +49,19 @@ func main() {
 	appContext := context.Background()
 
 	// adapters
-	aTelegram := telegram.New(config, *client)
+	aTelegram := aTelegramPackage.New(config, *client)
 
 	// use cases
 	ucNotify := ucNotifyUseCasePackage.New(aTelegram)
 
-	// controllers
-	cmdNotify := ucNotifyControllerPackage.Notify(ucNotify)
-	cmdRoot := ucRootControllerPackage.RootController(cmdNotify)
+	// MCP controllers
+	mcpStdIOController := mcpStdIOControllerPackage.New(ucNotify)
+
+	// cobra controllers
+	cmdNotify := cmdNotifyControllerPackage.Notify(ucNotify)
+	cmdMCPStdIO := cmdMCPStdIOControllerPackage.MCPStdIOController(mcpStdIOController)
+	cmdMCPRoot := cmdMCPRootControllerPackage.NewMCPRootController(cmdMCPStdIO)
+	cmdRoot := cmdRootControllerPackage.RootController(cmdNotify, cmdMCPRoot)
 
 	err = cmdRoot.ExecuteContext(appContext)
 
