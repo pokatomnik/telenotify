@@ -6,6 +6,7 @@ DIST_DIR := dist
 GO ?= go
 GOOS ?= $(shell $(GO) env GOOS)
 GOARCH ?= $(shell $(GO) env GOARCH)
+CGO_ENABLED ?= 0
 VERSION ?= dev
 LDFLAGS := -s -w -X main.version=$(VERSION)
 GOFLAGS := -trimpath
@@ -34,7 +35,7 @@ build: $(BIN_DIR)/$(APP_NAME)
 
 $(BIN_DIR)/$(APP_NAME):
 	@mkdir -p $(BIN_DIR)
-	GOOS=$(GOOS) GOARCH=$(GOARCH) $(GO) build $(GO_BUILD_FLAGS) -o $@ $(CMD_DIR)
+	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) $(GO) build $(GO_BUILD_FLAGS) -o $@ $(CMD_DIR)
 
 build-all:
 	@mkdir -p $(DIST_DIR)
@@ -46,11 +47,11 @@ build-all:
 		if [ "$$os" = "windows" ]; then extension=.exe; fi; \
 		output=$(DIST_DIR)/$(APP_NAME)-$$os-$$arch$$extension; \
 		echo "Building $$output"; \
-		GOOS=$$os GOARCH=$$arch $(GO) build $(GO_BUILD_FLAGS) -o $$output $(CMD_DIR); \
+		CGO_ENABLED=$(CGO_ENABLED) GOOS=$$os GOARCH=$$arch $(GO) build $(GO_BUILD_FLAGS) -o $$output $(CMD_DIR); \
 	done
 
 install:
-	GOOS=$(GOOS) GOARCH=$(GOARCH) $(GO) install $(GO_BUILD_FLAGS) $(CMD_DIR)
+	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) $(GO) install $(GO_BUILD_FLAGS) $(CMD_DIR)
 
 clean:
 	rm -rf $(BIN_DIR) $(DIST_DIR)

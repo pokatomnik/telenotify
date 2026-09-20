@@ -1,28 +1,74 @@
-# This workflow will build a golang project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
-
-name: Go
+name: Build release
 
 on:
-  push:
-    branches: [ "dungeon-master" ]
-  pull_request:
-    branches: [ "dungeon-master" ]
+  workflow_dispatch:
+    inputs:
+      release_branch:
+        description: Release branch to build
+        required: true
+        type: string
+
+permissions:
+  contents: read
 
 jobs:
-
   build:
+    name: Build ${{ matrix.goos }}/${{ matrix.goarch }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          - goos: darwin
+            goarch: amd64
+          - goos: darwin
+            goarch: arm64
+          - goos: windows
+            goarch: amd64
+          - goos: windows
+            goarch: arm64
+
     steps:
-    - uses: actions/checkout@v4
+      - name: Check out release branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.release_branch || github.ref_name }}
 
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.20'
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
 
-    - name: Build
-      run: go build -v ./...
+      - name: Build binary
+        env:
+          CGO_ENABLED: 0
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          VERSION: ${{ github.event.inputs.release_branch || github.ref_name }}
+        run: make build VERSION="$VERSION"
 
-    - name: Test
-      run: go test -v ./...
+      - name: Archive binary
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          mkdir -p dist
+          if [ "$GOOS" = "windows" ]; then
+            mv bin/telenotify dist/telenotify-$GOOS-$GOARCH.exe
+            zip dist/telenotify-$GOOS-$GOARCH.zip dist/telenotify-$GOOS-$GOARCH.exe
+          else
+            mv bin/telenotify dist/telenotify-$GOOS-$GOARCH
+            tar -czf dist/telenotify-$GOOS-$GOARCH.tar.gz -C dist telenotify-$GOOS-$GOARCH
+          fi
+          rm -f dist/telenotify-$GOOS-$GOARCH dist/telenotify-$GOOS-$GOARCH.exe
+
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: telenotify-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: dist/telenotify-${{ matrix.goos }}-${{ matrix.goarch }}.*
+          if-no-files-found: error
