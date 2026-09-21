@@ -6,4 +6,7 @@ import "errors"
 var (
 	// Telegram response error
 	ErrorTelegramResponse = errors.New("Telegram sent error response")
+
+	// Skills errors
+	ErrorSkillPathIsNotAFile = errors.New("Skill path is not a file")
 )
