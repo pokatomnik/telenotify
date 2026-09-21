@@ -19,7 +19,7 @@ TARGETS := \
 	windows/amd64 \
 	windows/arm64
 
-.PHONY: all lint test build build-all install clean
+.PHONY: all lint test generate build build-all install clean
 
 all: lint test build
 
@@ -30,11 +30,12 @@ lint:
 test:
 	$(GO) test ./...
 
-build: $(DIST_DIR)/$(APP_NAME)
+generate:
+	$(GO) generate ./...
 
-$(DIST_DIR)/$(APP_NAME):
+build:
 	@mkdir -p $(DIST_DIR)
-	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) $(GO) build $(GO_BUILD_FLAGS) -o $@ $(CMD_DIR)
+	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) $(GO) build $(GO_BUILD_FLAGS) -o $(DIST_DIR)/$(APP_NAME) $(CMD_DIR)
 
 build-all:
 	@mkdir -p $(DIST_DIR)
