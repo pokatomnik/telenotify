@@ -62,6 +62,31 @@ Start the streamable HTTP MCP server. It listens on `127.0.0.1:8080` by default,
 telenotify mcp http
 ```
 
+### Skills
+
+Telenotify can install its agent skill globally at `~/.agents/skills/telenotify/SKILL.md` or locally in the current working directory at `./.agents/skills/telenotify/SKILL.md`. The skill describes how an agent can use the CLI to send Telegram notifications.
+
+Check whether the global skill is installed:
+
+```sh
+telenotify skill
+```
+
+Install or remove the global skill:
+
+```sh
+telenotify skill install
+telenotify skill remove
+```
+
+Use `--local` to work with the skill in the current project directory instead:
+
+```sh
+telenotify skill --local
+telenotify skill install --local
+telenotify skill remove --local
+```
+
 ## Development
 
 ### Architecture
