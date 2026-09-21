@@ -51,12 +51,11 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
         run: |
-          mkdir -p dist
           if [ "$GOOS" = "windows" ]; then
-            mv bin/telenotify dist/telenotify-$GOOS-$GOARCH.exe
+            mv dist/telenotify dist/telenotify-$GOOS-$GOARCH.exe
             zip dist/telenotify-$GOOS-$GOARCH.zip dist/telenotify-$GOOS-$GOARCH.exe
           else
-            mv bin/telenotify dist/telenotify-$GOOS-$GOARCH
+            mv dist/telenotify dist/telenotify-$GOOS-$GOARCH
             tar -czf dist/telenotify-$GOOS-$GOARCH.tar.gz -C dist telenotify-$GOOS-$GOARCH
           fi
           rm -f dist/telenotify-$GOOS-$GOARCH dist/telenotify-$GOOS-$GOARCH.exe

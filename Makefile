@@ -1,6 +1,5 @@
 APP_NAME := telenotify
 CMD_DIR := ./cmd/telenotify
-BIN_DIR := bin
 DIST_DIR := dist
 
 GO ?= go
@@ -31,10 +30,10 @@ lint:
 test:
 	$(GO) test ./...
 
-build: $(BIN_DIR)/$(APP_NAME)
+build: $(DIST_DIR)/$(APP_NAME)
 
-$(BIN_DIR)/$(APP_NAME):
-	@mkdir -p $(BIN_DIR)
+$(DIST_DIR)/$(APP_NAME):
+	@mkdir -p $(DIST_DIR)
 	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) $(GO) build $(GO_BUILD_FLAGS) -o $@ $(CMD_DIR)
 
 build-all:
@@ -54,4 +53,4 @@ install:
 	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) $(GO) install $(GO_BUILD_FLAGS) $(CMD_DIR)
 
 clean:
-	rm -rf $(BIN_DIR) $(DIST_DIR)
+	rm -rf $(DIST_DIR)
