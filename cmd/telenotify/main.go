@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"log"
+	"os/signal"
+	"syscall"
 
 	stdHttp "net/http"
 
@@ -58,6 +60,13 @@ func main() {
 
 	// main context
 	appContext := context.Background()
+	appContext, cancel := signal.NotifyContext(
+		appContext,
+		syscall.SIGTERM,
+		syscall.SIGQUIT,
+		syscall.SIGINT,
+	)
+	defer cancel()
 
 	// adapters
 	aTelegram := aTelegramPackage.New(config, *client)

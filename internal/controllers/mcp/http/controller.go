@@ -12,7 +12,7 @@ import (
 	tools "github.com/pokatomnik/telenotify/internal/controllers/mcp/tools/notify"
 	"github.com/pokatomnik/telenotify/internal/entities/notifreq"
 	"github.com/pokatomnik/telenotify/internal/prompts"
-	"golang.org/x/sync/errgroup"
+	"github.com/pokatomnik/telenotify/internal/util/http"
 )
 
 const (
@@ -83,32 +83,15 @@ func (m MCPHTTPRunner) Run(ctx context.Context) error {
 		return err
 	}
 
-	httpServer := &stdHttp.Server{
+	httpServer := http.NewHTTPServerExt(&stdHttp.Server{
 		Addr:    m.getHTTPAddress(),
 		Handler: handler,
 		BaseContext: func(net.Listener) context.Context {
 			return ctx
 		},
-	}
-
-	eg, serverCtx := errgroup.WithContext(ctx)
-
-	eg.Go(func() error {
-		return httpServer.ListenAndServe()
 	})
 
-	eg.Go(func() error {
-		<-serverCtx.Done()
-		cancelCtx, cancel := context.WithTimeout(
-			context.Background(),
-			shutdownTimeout,
-		)
-		defer cancel()
-
-		return httpServer.Shutdown(cancelCtx)
-	})
-
-	err = eg.Wait()
+	err = httpServer.ListenAndServeContext(ctx)
 	if errors.Is(err, stdHttp.ErrServerClosed) {
 		return nil
 	}
@@ -117,5 +100,5 @@ func (m MCPHTTPRunner) Run(ctx context.Context) error {
 		return err
 	}
 
-	return nil
+	return err
 }
